@@ -1,3 +1,5 @@
+//  example from  /depthai-core-example/depthai-core/examples/StereoDepth/depth_preview.cpp
+
 #include <iostream>
 
 // Includes common necessary includes for development using depthai library

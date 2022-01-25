@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.2)
 
 # Add depthai-core dependency
-#add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/depthai-core EXCLUDE_FROM_ALL)
-find_package(depthai CONFIG REQUIRED)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/depthai-core EXCLUDE_FROM_ALL)
+#find_package(depthai CONFIG REQUIRED)
 #find_package(depthai REQUIRED PATHS "/home/lc/Dev/depthai-core-example/build/depthai-core/_install")
 #find_package(depthai REQUIRED PATHS "/home/lc/Dev/depthai-core-example/build/depthai-core/")
 
