@@ -110,6 +110,30 @@ int main() {
                     frame[name] = latestPacket[name]->getFrame();
                     auto maxDisparity = stereo->initialConfig.getMaxDisparity();
                     // Optional, extend range 0..95 -> 0..255, for a better visualisation
+                    
+                    //unsigned int d = frame[name].ptr<unsigned short>(v)[u];
+                    cv::Mat img_color=frame["rgb"];
+                    cv::Mat img_depth=frame[name];
+                    unsigned int d = img_depth.ptr<unsigned short>(400)[1000];
+                    std::cout<< " d: "<<d<<std::endl;
+                    unsigned int d2 = img_depth.ptr<uint8_t>(400)[1000];
+                    std::cout<< " d2: "<<d2<<std::endl;
+                    //TODO: convert disparity to cloud 
+                    /*
+                    // compute the depth from disparity
+                    double xNorm = (u - cx) / fx; //x normalizado
+                    double yNorm = (v - cy) / fy; //y normalizado
+                    double depth = fx * b / (disparity.at<float>(v, u)); //depth=z real = scala w
+
+                    if (depth>15.0) continue; //solo rescata los puntos con profundiad inferior a 15m
+                    point[0] = xNorm * depth; //x normalizado se escala y se recupera x real
+                    point[1] = yNorm * depth;
+                    point[2] = depth;
+                    
+                    */
+
+
+
                     if(1) frame[name].convertTo(frame[name], CV_8UC1, 255. / maxDisparity);
                     // Optional, apply false colorization
                     if(1) cv::applyColorMap(frame[name], frame[name], cv::COLORMAP_HOT);
