@@ -1,6 +1,5 @@
 //  example from  /depthai-core-example/depthai-core/examples/StereoDepth/rgb_depth_aligned.cpp
 
-
 #include <cstdio>
 #include <iostream>
 
@@ -9,6 +8,8 @@
 
 // Includes common necessary includes for development using depthai library
 #include "depthai/depthai.hpp"
+
+#include <fstream>
 
 // Optional. If set (true), the ColorCamera is downscaled from 1080p to 720p.
 // Otherwise (false), the aligned depth is automatically upscaled to 1080p
@@ -20,12 +21,20 @@ static constexpr auto monoRes = dai::MonoCameraProperties::SensorResolution::THE
 static float rgbWeight = 0.6f;
 static float depthWeight = 0.4f;
 
-static void updateBlendWeights(int percentRgb, void* ctx) {
+static void updateBlendWeights(int percentRgb, void *ctx)
+{
     rgbWeight = float(percentRgb) / 100.f;
     depthWeight = 1.f - rgbWeight;
 }
 
-int main() {
+int main()
+{
+
+    std::ofstream file;
+    //file.open("foo.csv");
+  	//file.open("cloudDepth.csv", std::fstream::in | std::fstream::out | std::fstream::app);
+    //file << "//X;Y;Z\n";
+
     using namespace std;
 
     // Create pipeline
@@ -50,7 +59,8 @@ int main() {
     camRgb->setBoardSocket(dai::CameraBoardSocket::RGB);
     camRgb->setResolution(dai::ColorCameraProperties::SensorResolution::THE_1080_P);
     camRgb->setFps(fps);
-    if(downscaleColor) camRgb->setIspScale(2, 3);
+    if (downscaleColor)
+        camRgb->setIspScale(2, 3);
     // For now, RGB needs fixed focus to properly align with depth.
     // This value was used during calibration
     camRgb->initialControl.setManualFocus(135);
@@ -77,7 +87,8 @@ int main() {
     dai::Device device(pipeline);
 
     // Sets queues size and behavior
-    for(const auto& name : queueNames) {
+    for (const auto &name : queueNames)
+    {
         device.getOutputQueue(name, 4, false);
     }
 
@@ -92,52 +103,88 @@ int main() {
     int defaultValue = (int)(rgbWeight * 100);
     cv::createTrackbar("RGB Weight %", blendedWindowName, &defaultValue, 100, updateBlendWeights);
 
-    while(true) {
+    int cont=0;
+    while (true)
+    {
         std::unordered_map<std::string, std::shared_ptr<dai::ImgFrame>> latestPacket;
 
         auto queueEvents = device.getQueueEvents(queueNames);
-        for(const auto& name : queueEvents) {
+        for (const auto &name : queueEvents)
+        {
             auto packets = device.getOutputQueue(name)->tryGetAll<dai::ImgFrame>();
             auto count = packets.size();
-            if(count > 0) {
+            if (count > 0)
+            {
                 latestPacket[name] = packets[count - 1];
             }
         }
 
-        for(const auto& name : queueNames) {
-            if(latestPacket.find(name) != latestPacket.end()) {
-                if(name == depthWindowName) {
+        for (const auto &name : queueNames)
+        {
+            if (latestPacket.find(name) != latestPacket.end())
+            {
+                if (name == depthWindowName)
+                {
                     frame[name] = latestPacket[name]->getFrame();
+
+
+                    //-----Generation pointcloud-----------ini
+                    cont++;
+                    std::string numb_img= "/home/lc/Dev/depthai-core-example/build/tmp/cloudDepth_"+ to_string(cont) + ".csv";
+                    file.open(numb_img, std::fstream::in | std::fstream::out | std::fstream::app);
+                    file << "//X;Y;Z\n";
+
+                    auto disparity = frame["depth"].clone();
+                    // Assuming  1280 x 720  default
+                    //TODO: check this calib default!!!
+                    //double fx = 788.936829, fy = 788.936829, cx = 660.262817, cy = 397.718628; //default
+                    double fx = 857.1668, fy = 856.0823, cx = 643.9126, cy = 387.56018;//calib   rms 0.12219291207537852  file:///home/lc/Dev/calib1%20oak-d%20dataset/calib%20with%20monitor
+                    
+                    double baselineStereo = 0.075; // Stereo baseline distance: 7.5 cm
+                    for (int v = 0; v < disparity.rows; v++)
+                    {
+                        for (int u = 0; u < disparity.cols; u++)
+                        {
+
+                            if (disparity.at<float>(v, u) <= 0.0 || disparity.at<float>(v, u) >= 96.0)
+                            //if (disparity.at<float>(v, u) <= 0.0 || disparity.at<float>(v, u) >= 200.0)
+                                continue;
+
+                            // compute the depth from disparity
+                            //double disparityD=disparity.at<float>(v, u);
+                            unsigned int disparityD = disparity.ptr<uint8_t>(v)[u];
+                            //unsigned int disparityD = disparity.ptr<unsigned short>(v)[u];
+
+                            double xNorm = (u - cx) / fx;                        // x normalizado
+                            double yNorm = (v - cy) / fy;                        // y normalizado
+                            double depth = fx * baselineStereo / (disparityD); // depth=z real = scala w
+                            // unsigned int d2 = img_depth.ptr<uint8_t>(400)[1000];
+
+                            if (depth > 15.0)
+                                continue;              // solo rescata los puntos con profundiad inferior a 15m
+                            double xP = xNorm * depth; // x normalizado se escala y se recupera x real
+                            double yP = yNorm * depth;
+                            double zP = depth;
+
+                            file << xP << ";" << yP << ";" << zP << "\n";
+                        }
+                    }
+                    file.close();
+                    //-----Generation pointcloud-----------end
+
+
+
                     auto maxDisparity = stereo->initialConfig.getMaxDisparity();
                     // Optional, extend range 0..95 -> 0..255, for a better visualisation
-                    
-                    //unsigned int d = frame[name].ptr<unsigned short>(v)[u];
-                    cv::Mat img_color=frame["rgb"];
-                    cv::Mat img_depth=frame[name];
-                    unsigned int d = img_depth.ptr<unsigned short>(400)[1000];
-                    std::cout<< " d: "<<d<<std::endl;
-                    unsigned int d2 = img_depth.ptr<uint8_t>(400)[1000];
-                    std::cout<< " d2: "<<d2<<std::endl;
-                    //TODO: convert disparity to cloud 
-                    /*
-                    // compute the depth from disparity
-                    double xNorm = (u - cx) / fx; //x normalizado
-                    double yNorm = (v - cy) / fy; //y normalizado
-                    double depth = fx * b / (disparity.at<float>(v, u)); //depth=z real = scala w
 
-                    if (depth>15.0) continue; //solo rescata los puntos con profundiad inferior a 15m
-                    point[0] = xNorm * depth; //x normalizado se escala y se recupera x real
-                    point[1] = yNorm * depth;
-                    point[2] = depth;
-                    
-                    */
-
-
-
-                    if(1) frame[name].convertTo(frame[name], CV_8UC1, 255. / maxDisparity);
+                    if (1)
+                        frame[name].convertTo(frame[name], CV_8UC1, 255. / maxDisparity);
                     // Optional, apply false colorization
-                    if(1) cv::applyColorMap(frame[name], frame[name], cv::COLORMAP_HOT);
-                } else {
+                    if (1)
+                        cv::applyColorMap(frame[name], frame[name], cv::COLORMAP_HOT);
+                }
+                else
+                {
                     frame[name] = latestPacket[name]->getCvFrame();
                 }
 
@@ -146,9 +193,12 @@ int main() {
         }
 
         // Blend when both received
-        if(frame.find(rgbWindowName) != frame.end() && frame.find(depthWindowName) != frame.end()) {
+        if (frame.find(rgbWindowName) != frame.end() && frame.find(depthWindowName) != frame.end())
+        {
+
             // Need to have both frames in BGR format before blending
-            if(frame[depthWindowName].channels() < 3) {
+            if (frame[depthWindowName].channels() < 3)
+            {
                 cv::cvtColor(frame[depthWindowName], frame[depthWindowName], cv::COLOR_GRAY2BGR);
             }
             cv::Mat blended;
@@ -158,18 +208,20 @@ int main() {
         }
 
         int key = cv::waitKey(1);
-        if(key == 'q' || key == 'Q') {
+        if (key == 'q' || key == 'Q')
+        {
+            file.close();
             return 0;
         }
     }
+
+    //file.close();
     return 0;
 }
 
-
-
 /*
 
-lc@lc-px ~/Dev/depthai-core-example/depthai-core/build/examples ((HEAD détachée sur 9710c727))$ ./calibration_reader 
+lc@lc-px ~/Dev/depthai-core-example/depthai-core/build/examples ((HEAD détachée sur 9710c727))$ ./calibration_reader
 Intrinsics from defaultIntrinsics function:
 [[788.936829, 0.000000, 660.262817]
 [0.000000, 788.936829, 397.718628]
