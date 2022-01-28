@@ -207,8 +207,9 @@ int main()
 
                     //-----Generation pointcloud-----------ini
                     cont++;
-                    std::string numb_img= "/home/lc/Dev/depthai-core-example/build/tmp/cloudDepth_"+ to_string(cont) + ".csv";
-                    file.open(numb_img, std::fstream::in | std::fstream::out | std::fstream::app);
+                    std::string numb_img= "/home/lc/Dev/depthai-core-example/build/tmp/cloudDepth_"+ to_string(cont) ;
+                    std::string numb_imgname=numb_img + ".csv";
+                    file.open(numb_imgname, std::fstream::in | std::fstream::out | std::fstream::app);
                     file << "//X;Y;Z\n";
 
                     auto disparity = frame["depth"].clone();
@@ -246,9 +247,12 @@ int main()
 
                             file << xP << ";" << yP << ";" << zP << "\n";
                             cloud->push_back(pcl::PointXYZ(xP,yP,zP));
+
                         }
                     }
                     file.close();
+
+                    pcl::io::savePCDFileASCII(numb_img+".pcd", *cloud); //for Debug
                     cloud->clear();
                     //-----Generation pointcloud-----------end
 
