@@ -11,6 +11,66 @@
 
 #include <fstream>
 
+
+
+//---------- //PCL_cloud_viewer  -----------------------ini
+
+#include <pcl/io/pcd_io.h>
+
+// for cloud viewer
+#include <pcl/console/parse.h>
+#include <pcl/point_types.h>
+#include <pcl/visualization/pcl_visualizer.h>
+#include <thread>
+
+
+using namespace std::chrono_literals;
+using pcl::visualization::PointCloudColorHandlerCustom;
+typedef pcl::PointXYZ PointT;
+
+std::shared_ptr<pcl::visualization::PCLVisualizer>
+simpleVis(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud)
+{
+  // --------------------------------------------
+  // -----Open 3D viewer and add point cloud-----
+  // --------------------------------------------
+  std::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
+  viewer->setBackgroundColor(0, 0, 0);
+  viewer->addPointCloud<pcl::PointXYZ>(cloud, "sample cloud");
+  viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "sample cloud");
+  // viewer->addCoordinateSystem (1.0, "global");
+  viewer->initCameraParameters();
+  return (viewer);
+}
+
+//TO ADD COLOR 
+std::shared_ptr<pcl::visualization::PCLVisualizer>
+Vis(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud,pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloudB)
+{
+  // --------------------------------------------
+  // -----Open 3D viewer and add point cloud-----
+  // --------------------------------------------
+  std::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
+  viewer->setBackgroundColor(0, 0, 0);//rgb red
+  
+  PointCloudColorHandlerCustom<PointT> tgt_h (cloud, 0, 255, 0);//green
+  PointCloudColorHandlerCustom<PointT> src_h (cloudB, 255, 0, 0);//red
+  
+  viewer->addPointCloud<pcl::PointXYZ>(cloud, tgt_h, "sample cloud");
+  viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "sample cloud");
+    
+  viewer->addPointCloud<pcl::PointXYZ>(cloudB, src_h,"sample cloudB");
+  viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "sample cloudB");
+  
+  viewer->addCoordinateSystem (1.0, "global");
+  viewer->initCameraParameters();
+  return (viewer);
+}
+
+
+//---------- //PCL_cloud_viewer  -----------------------end
+
+
 // Optional. If set (true), the ColorCamera is downscaled from 1080p to 720p.
 // Otherwise (false), the aligned depth is automatically upscaled to 1080p
 static std::atomic<bool> downscaleColor{true};
@@ -29,6 +89,10 @@ static void updateBlendWeights(int percentRgb, void *ctx)
 
 int main()
 {
+
+  //PCL_cloud_viewer
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::io::loadPCDFile("/home/lc/fprojects/cpp/pcl/detectionLibViewer/cloudOrig.pcd", *cloud);    //for Debug
 
     std::ofstream file;
     //file.open("foo.csv");
@@ -103,9 +167,22 @@ int main()
     int defaultValue = (int)(rgbWeight * 100);
     cv::createTrackbar("RGB Weight %", blendedWindowName, &defaultValue, 100, updateBlendWeights);
 
+
+    //PCL_cloud_viewer 
+    std::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
+    //viewer = Vis(cloud,cloudOut); //2 clouds
+    viewer = simpleVis(cloud); //1 cloud
+
+
     int cont=0;
     while (true)
     {
+        //PCL_cloud_viewer 
+        viewer->spinOnce(100);
+        std::this_thread::sleep_for(100ms);
+
+
+
         std::unordered_map<std::string, std::shared_ptr<dai::ImgFrame>> latestPacket;
 
         auto queueEvents = device.getQueueEvents(queueNames);
