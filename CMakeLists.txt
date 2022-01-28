@@ -16,6 +16,12 @@ project(${TARGET_NAME})
 # Dependencies (optional, only used for example)
 find_package(OpenCV REQUIRED)
 
+# PCL library
+find_package(PCL 1.8 REQUIRED)
+include_directories(${PCL_INCLUDE_DIRS})
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+
 
 # Add source files
 add_executable("${TARGET_NAME}"
@@ -27,6 +33,7 @@ target_link_libraries(${TARGET_NAME}
     PUBLIC
         depthai::opencv
         ${OpenCV_LIBS} # optional, used for example
+        ${PCL_LIBRARIES} # PCL library
 )
 
 # Set some errors
