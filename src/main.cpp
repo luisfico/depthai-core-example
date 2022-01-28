@@ -92,7 +92,7 @@ int main()
 
   //PCL_cloud_viewer
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-  pcl::io::loadPCDFile("/home/lc/fprojects/cpp/pcl/detectionLibViewer/cloudOrig.pcd", *cloud);    //for Debug
+  //pcl::io::loadPCDFile("/home/lc/fprojects/cpp/pcl/detectionLibViewer/cloudOrig.pcd", *cloud);    //for Debug
 
     std::ofstream file;
     //file.open("foo.csv");
@@ -245,9 +245,11 @@ int main()
                             double zP = depth;
 
                             file << xP << ";" << yP << ";" << zP << "\n";
+                            cloud->push_back(pcl::PointXYZ(xP,yP,zP));
                         }
                     }
                     file.close();
+                    cloud->clear();
                     //-----Generation pointcloud-----------end
 
 
