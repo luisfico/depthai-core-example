@@ -1,3 +1,5 @@
+//todo:  save  image   and see cloud in real time    ,    use  ros,  use   rgbs pipeline2
+
 //  example from  /depthai-core-example/depthai-core/examples/StereoDepth/rgb_depth_aligned.cpp
 
 #include <cstdio>
@@ -28,19 +30,25 @@ using namespace std::chrono_literals;
 using pcl::visualization::PointCloudColorHandlerCustom;
 typedef pcl::PointXYZ PointT;
 
-std::shared_ptr<pcl::visualization::PCLVisualizer>
-simpleVis(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud)
+std::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
+  
+
+//std::shared_ptr<pcl::visualization::PCLVisualizer> simpleVis(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud)
+void simpleVis(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud)
 {
   // --------------------------------------------
   // -----Open 3D viewer and add point cloud-----
   // --------------------------------------------
-  std::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
+  //std::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
   viewer->setBackgroundColor(0, 0, 0);
   viewer->addPointCloud<pcl::PointXYZ>(cloud, "sample cloud");
   viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "sample cloud");
-  // viewer->addCoordinateSystem (1.0, "global");
+  viewer->addCoordinateSystem (0.30, "global");
   viewer->initCameraParameters();
-  return (viewer);
+  //return (viewer);
+
+  PCL_INFO ("Press q to begin the registration.\n");
+  viewer->spin();
 }
 
 //TO ADD COLOR 
@@ -171,15 +179,15 @@ int main()
     //PCL_cloud_viewer 
     std::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
     //viewer = Vis(cloud,cloudOut); //2 clouds
-    viewer = simpleVis(cloud); //1 cloud
+    //viewer = simpleVis(cloud); //1 cloud
 
 
     int cont=0;
     while (true)
     {
         //PCL_cloud_viewer 
-        viewer->spinOnce(100);
-        std::this_thread::sleep_for(100ms);
+        //viewer->spinOnce(100);
+        //std::this_thread::sleep_for(100ms);
 
 
 
@@ -252,8 +260,12 @@ int main()
                     }
                     file.close();
 
-                    pcl::io::savePCDFileASCII(numb_img+".pcd", *cloud); //for Debug
-                    cloud->clear();
+                    if(!cloud->empty())
+                    {
+                        pcl::io::savePCDFileASCII(numb_img+".pcd", *cloud); //for Debug
+                        simpleVis(cloud); //1 cloud
+                        cloud->clear();
+                    }
                     //-----Generation pointcloud-----------end
 
 
