@@ -226,7 +226,7 @@ int main()
                     //double fx = 788.936829, fy = 788.936829, cx = 660.262817, cy = 397.718628; //default
                     double fx = 857.1668, fy = 856.0823, cx = 643.9126, cy = 387.56018;//calib   rms 0.12219291207537852  file:///home/lc/Dev/calib1%20oak-d%20dataset/calib%20with%20monitor
                     //Problem cloud scale :  real  0.30/  generated 0.756   aprox factor  0.4 ???  
-
+                    double factorFix=0.4;
                     double baselineStereo = 0.075; // Stereo baseline distance: 7.5 cm
                     for (int v = 0; v < disparity.rows; v++)
                     {
@@ -242,9 +242,9 @@ int main()
                             unsigned int disparityD = disparity.ptr<uint8_t>(v)[u];
                             //unsigned int disparityD = disparity.ptr<unsigned short>(v)[u];
 
-                            double xNorm = (u - cx) / fx;                        // x normalizado
-                            double yNorm = (v - cy) / fy;                        // y normalizado
-                            double depth = fx * baselineStereo / (disparityD); // depth=z real = scala w
+                            double xNorm = (u - cx) / fx*factorFix;                        // x normalizado
+                            double yNorm = (v - cy) / fy*factorFix;                        // y normalizado
+                            double depth = fx * baselineStereo / (disparityD)*factorFix; // depth=z real = scala w
                             // unsigned int d2 = img_depth.ptr<uint8_t>(400)[1000];
 
                             if (depth > 15.0)
