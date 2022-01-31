@@ -70,7 +70,8 @@ Vis(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud,pcl::PointCloud<pcl::PointXYZ
   viewer->addPointCloud<pcl::PointXYZ>(cloudB, src_h,"sample cloudB");
   viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "sample cloudB");
   
-  viewer->addCoordinateSystem (1.0, "global");
+  viewer->addCoordinateSystem (0.6, "global");
+  //viewer->setCameraPosition (double pos_x, double pos_y, double pos_z, double up_x, double up_y, double up_z, int viewport = 0);
   viewer->initCameraParameters();
   return (viewer);
 }
@@ -217,8 +218,8 @@ int main()
                     cont++;
                     std::string numb_img= "/home/lc/Dev/depthai-core-example/build/tmp/cloudDepth_"+ to_string(cont) ;
                     std::string numb_imgname=numb_img + ".csv";
-                    file.open(numb_imgname, std::fstream::in | std::fstream::out | std::fstream::app);
-                    file << "//X;Y;Z\n";
+                    //file.open(numb_imgname, std::fstream::in | std::fstream::out | std::fstream::app);
+                    //file << "//X;Y;Z\n";
 
                     auto disparity = frame["depth"].clone();
                     // Assuming  1280 x 720  default
@@ -226,7 +227,7 @@ int main()
                     //double fx = 788.936829, fy = 788.936829, cx = 660.262817, cy = 397.718628; //default
                     double fx = 857.1668, fy = 856.0823, cx = 643.9126, cy = 387.56018;//calib   rms 0.12219291207537852  file:///home/lc/Dev/calib1%20oak-d%20dataset/calib%20with%20monitor
                     //Problem cloud scale :  real  0.30/  generated 0.756   aprox factor  0.4 ???  
-                    double factorFix=0.4;
+                    double factorFix=1; //0.4;
                     double baselineStereo = 0.075; // Stereo baseline distance: 7.5 cm
                     for (int v = 0; v < disparity.rows; v++)
                     {
@@ -238,13 +239,15 @@ int main()
                                 continue;
 
                             // compute the depth from disparity
-                            //double disparityD=disparity.at<float>(v, u);
-                            unsigned int disparityD = disparity.ptr<uint8_t>(v)[u];
+                            //double disparityD=disparity.at<float>(v, u);//ko
+                            //double disparityD=disparity.at<double>(v, u); //ko
+                            unsigned int disparityD = disparity.ptr<uint8_t>(v)[u]; //ok
                             //unsigned int disparityD = disparity.ptr<unsigned short>(v)[u];
 
                             double xNorm = (u - cx) / fx*factorFix;                        // x normalizado
                             double yNorm = (v - cy) / fy*factorFix;                        // y normalizado
-                            double depth = fx * baselineStereo / (disparityD)*factorFix; // depth=z real = scala w
+                            double depth = fx * baselineStereo / (disparityD)*factorFix; //ok depth=z real = scala w
+                            //double depth = fx * baselineStereo / (disparity.at<float>(v, u));//ko
                             // unsigned int d2 = img_depth.ptr<uint8_t>(400)[1000];
 
                             if (depth > 15.0)
@@ -258,11 +261,12 @@ int main()
 
                         }
                     }
-                    file.close();
+                    //file.close();
 
                     if(!cloud->empty())
                     {
-                        pcl::io::savePCDFileASCII(numb_img+".pcd", *cloud); //for Debug
+                        //pcl::io::savePCDFileASCII(numb_img+".pcd", *cloud); //for Debug
+                        pcl::io::savePCDFileASCII("tmp/currentCloud.pcd", *cloud); //for Debug
                         simpleVis(cloud); //1 cloud
                         cloud->clear();
                     }
