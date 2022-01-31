@@ -227,7 +227,7 @@ int main()
                     //double fx = 788.936829, fy = 788.936829, cx = 660.262817, cy = 397.718628; //default
                     double fx = 857.1668, fy = 856.0823, cx = 643.9126, cy = 387.56018;//calib   rms 0.12219291207537852  file:///home/lc/Dev/calib1%20oak-d%20dataset/calib%20with%20monitor
                     //Problem cloud scale :  real  0.30/  generated 0.756   aprox factor  0.4 ???  
-                    double scale_mm_m=1; //1000; //0.4;
+                    double factorFix=0.4; //1000; //0.4;
                     double baselineStereo = 0.075; // Stereo baseline distance: 7.5 cm
                     for (int v = 0; v < disparity.rows; v++)
                     {
@@ -251,7 +251,7 @@ int main()
                             
                             double xNorm = (u - cx) / fx;                        // x normalizado
                             double yNorm = (v - cy) / fy;                        // y normalizado
-                            double depth = fx * baselineStereo / (disparityD/scale_mm_m); //ok depth=z real = scala w
+                            double depth = fx * baselineStereo / (disparityD)*factorFix; //ok depth=z real = scala w
                             //double depth = fx * baselineStereo / (disparity.at<float>(v, u));//ko
                             //double depth = fx * baselineStereo / disparity.ptr<float>(v)[u];//ko
                             // unsigned int d2 = img_depth.ptr<uint8_t>(400)[1000];
@@ -281,6 +281,7 @@ int main()
 
 
                     auto maxDisparity = stereo->initialConfig.getMaxDisparity();
+                    std::cout << "maxDisparity: " << maxDisparity<<std::endl; //95
                     // Optional, extend range 0..95 -> 0..255, for a better visualisation
 
                     if (1)
