@@ -279,8 +279,8 @@ int main()
                     if(!cloud->empty())
                     {
                         //pcl::io::savePCDFileASCII(numb_img+".pcd", *cloud); //for Debug
-                        pcl::io::savePCDFileASCII("tmp/currentCloud.pcd", *cloud); //for Debug
-                        simpleVis(cloud); //1 cloud
+                        //pcl::io::savePCDFileASCII("tmp/currentCloud.pcd", *cloud); //for Debug
+                        //simpleVis(cloud); //1 cloud
                         cloud->clear();
                     }
                     //-----Generation pointcloud-----------end
