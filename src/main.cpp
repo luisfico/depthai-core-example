@@ -218,7 +218,8 @@ int main()
                     //-----Generation pointcloud-----------ini
                     cont++;
                     std::string numb_img= "/home/lc/Dev/depthai-core-example/build/tmp/cloudDepth_"+ to_string(cont) ;
-                    std::string numb_imgColor= "/home/lc/Dev/depthai-core-example/build/tmp/img_"+ to_string(cont)+".png" ;
+                    //std::string numb_imgColor= "/home/lc/Dev/depthai-core-example/build/tmp/img_"+ to_string(cont)+".png" ;
+                    std::string numb_imgColor= "/home/lc/Dev/depthai-core-example/build/tmp/img_current.png" ;
                     std::string numb_imgname=numb_img + ".csv";
                     //file.open(numb_imgname, std::fstream::in | std::fstream::out | std::fstream::app);
                     //file << "//X;Y;Z\n";
@@ -234,7 +235,7 @@ int main()
                     double fx = 788.936829, fy = 788.936829, cx = 660.262817, cy = 397.718628; //default  1280 x 800
                     //double fx = 857.1668, fy = 856.0823, cx = 643.9126, cy = 387.56018;// 1280 x 800 calib   rms 0.12219291207537852  file:///home/lc/Dev/calib1%20oak-d%20dataset/calib%20with%20monitor
                     //Problem cloud scale :  real  0.30/  generated 0.756   aprox factor  0.4 ???  
-                    double factorFix=0.4; //1000; //0.4;
+                    double factorFix=1; // 0.4; //1000; //0.4;
                     double baselineStereo = 0.075; // Stereo baseline distance: 7.5 cm
                     for (int v = 0; v < disparity.rows; v++)
                     {
@@ -278,7 +279,7 @@ int main()
 
                     if(!cloud->empty())
                     {
-                        //pcl::io::savePCDFileASCII(numb_img+".pcd", *cloud); //for Debug
+                        pcl::io::savePCDFileASCII(numb_img+".pcd", *cloud); //for Debug
                         //pcl::io::savePCDFileASCII("tmp/currentCloud.pcd", *cloud); //for Debug
                         //simpleVis(cloud); //1 cloud
                         cloud->clear();
