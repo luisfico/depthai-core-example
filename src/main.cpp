@@ -232,8 +232,9 @@ int main()
                     
                     // Assuming  1280 x 720  default
                     //TODO: check this calib default!!!
-                    double fx = 788.936829, fy = 788.936829, cx = 660.262817, cy = 397.718628; //default  1280 x 800
+                    //double fx = 788.936829, fy = 788.936829, cx = 660.262817, cy = 397.718628; //default  1280 x 800
                     //double fx = 857.1668, fy = 856.0823, cx = 643.9126, cy = 387.56018;// 1280 x 800 calib   rms 0.12219291207537852  file:///home/lc/Dev/calib1%20oak-d%20dataset/calib%20with%20monitor
+                    double fx = 1042.20948, fy = 1040.51395, cx = 643.9126, cy = 387.56018;// 1280 x 720 calib   rms 0.016328653730143784 file:///home/lc/Dev/depthai-core-example/build/tmp%20to%20use/select/result%20fast%20calib
                     //Problem cloud scale :  real  0.30/  generated 0.756   aprox factor  0.4 ???  
                     double factorFix=1; // 0.4; //1000; //0.4;
                     double baselineStereo = 0.075; // Stereo baseline distance: 7.5 cm
