@@ -86,6 +86,12 @@ static std::atomic<bool> downscaleColor{true};
 static constexpr int fps = 30;
 // The disparity is computed at this resolution, then upscaled to RGB resolution
 static constexpr auto monoRes = dai::MonoCameraProperties::SensorResolution::THE_400_P;
+//static constexpr auto monoRes = dai::MonoCameraProperties::SensorResolution::THE_720_P;
+
+/* NOTE
+                                         1280×720, 1280×800, 640×400,    640×480
+enum class SensorResolution : int32_t { THE_720_P, THE_800_P, THE_400_P, THE_480_P };
+*/
 
 static float rgbWeight = 0.6f;
 static float depthWeight = 0.4f;
@@ -103,7 +109,7 @@ int main()
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
   //pcl::io::loadPCDFile("/home/lc/fprojects/cpp/pcl/detectionLibViewer/cloudOrig.pcd", *cloud);    //for Debug
 
-    std::ofstream file;
+    //std::ofstream file;
     //file.open("foo.csv");
   	//file.open("cloudDepth.csv", std::fstream::in | std::fstream::out | std::fstream::app);
     //file << "//X;Y;Z\n";
@@ -145,7 +151,7 @@ int main()
     right->setBoardSocket(dai::CameraBoardSocket::RIGHT);
     right->setFps(fps);
 
-    stereo->setDefaultProfilePreset(dai::node::StereoDepth::PresetMode::HIGH_DENSITY);
+    stereo->setDefaultProfilePreset(dai::node::StereoDepth::PresetMode::HIGH_DENSITY); // HIGH_ACCURACY
     // LR-check is required for depth alignment
     stereo->setLeftRightCheck(true);
     stereo->setDepthAlign(dai::CameraBoardSocket::RGB);
@@ -235,16 +241,16 @@ int main()
                     //double fx = 788.936829, fy = 788.936829, cx = 660.262817, cy = 397.718628; //default  1280 x 800
                     //double fx = 857.1668, fy = 856.0823, cx = 643.9126, cy = 387.56018;// 1280 x 800 calib   rms 0.12219291207537852  file:///home/lc/Dev/calib1%20oak-d%20dataset/calib%20with%20monitor
                     double fx = 1042.20948, fy = 1040.51395, cx = 643.9126, cy = 387.56018;// 1280 x 720 calib   rms 0.016328653730143784 file:///home/lc/Dev/depthai-core-example/build/tmp%20to%20use/select/result%20fast%20calib
-                    //Problem cloud scale :  real  0.30/  generated 0.756   aprox factor  0.4 ???  
-                    double factorFix=1; // 0.4; //1000; //0.4;
+                    //Problem cloud scale :  real  0.30/  generated 0.756   aprox factor  0.4 ???     disparityD value is scaled by 16bits? so   real disparityD= disparityD/16bits ? 
+                    double factorFix= 720/400; //720/400; // 1080/720      0.4; //1000; //0.4;  // upscale   THE_400_P to THE_720_P
                     double baselineStereo = 0.075; // Stereo baseline distance: 7.5 cm
                     for (int v = 0; v < disparity.rows; v++)
                     {
                         for (int u = 0; u < disparity.cols; u++)
                         {
 
-                            //if (disparity.at<float>(v, u) <= 0.0 || disparity.at<float>(v, u) >= 96.0)    //ok
-                            if (disparity.at<float>(v, u) <= 0.0 || disparity.at<float>(v, u) >= 200.0)
+                            if (disparity.at<uint8_t>(v, u) <= 0.0 || disparity.at<uint8_t>(v, u) >= 96.0)    //ok
+                            //if (disparity.at<uint8_t>(v, u) <= 0.0 || disparity.at<uint8_t>(v, u) >= 200.0)
                                 continue;
 
                             // compute the depth from disparity
@@ -254,16 +260,16 @@ int main()
                             //double disparityD = disparity.ptr<unsigned short>(v)[u]; //ko
 
                             //unsigned int disparityD = disparity.ptr<uint8_t>(v)[u]; //ok
-                            double disparityD = disparity.ptr<uint8_t>(v)[u]; //ok
+                            double disparityD = disparity.ptr<uint8_t>(v)[u]; //ok   disparityD value is scaled by 16bits? so   real disparityD= disparityD/16bits ? 
                             //double disparityD = disparity.ptr<uint16_t>(v)[u];
                             //double disparityD = disparity.ptr<uint32_t>(v)[u];
                             
                             double xNorm = (u - cx) / fx;                        // x normalizado
                             double yNorm = (v - cy) / fy;                        // y normalizado
-                            double depth = fx * baselineStereo / (disparityD)*factorFix; //ok depth=z real = scala w
+                            double depth = fx * baselineStereo / (disparityD*factorFix); //ok depth=z real = scala w
                             //double depth = fx * baselineStereo / (disparity.at<float>(v, u));//ko
                             //double depth = fx * baselineStereo / disparity.ptr<float>(v)[u];//ko
-                            // unsigned int d2 = img_depth.ptr<uint8_t>(400)[1000];
+                            //unsigned int d2 = img_depth.ptr<uint8_t>(400)[1000];
 
                             if (depth > 15.0)
                                 continue;              // solo rescata los puntos con profundiad inferior a 15m
@@ -271,7 +277,7 @@ int main()
                             double yP = yNorm * depth;
                             double zP = depth;
 
-                            file << xP << ";" << yP << ";" << zP << "\n";
+                            //file << xP << ";" << yP << ";" << zP << "\n";
                             cloud->push_back(pcl::PointXYZ(xP,yP,zP));
 
                         }
@@ -326,7 +332,7 @@ int main()
         int key = cv::waitKey(1);
         if (key == 'q' || key == 'Q')
         {
-            file.close();
+            //file.close();
             return 0;
         }
     }
