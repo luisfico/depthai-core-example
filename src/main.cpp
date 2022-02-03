@@ -1,3 +1,5 @@
+//USAGE:   ./myapp Q.xml     generates   continous color clouds  cloudDepth_X.pcd
+
 //todo:  save  image   and see cloud in real time    ,    use  ros,  use   rgbs pipeline2
 
 //  example from  /depthai-core-example/depthai-core/examples/StereoDepth/rgb_depth_aligned.cpp
@@ -25,6 +27,7 @@
 #include <pcl/visualization/pcl_visualizer.h>
 #include <thread>
 
+#define CUSTOM_REPROJECT
 
 using namespace std::chrono_literals;
 using pcl::visualization::PointCloudColorHandlerCustom;
@@ -102,7 +105,7 @@ static void updateBlendWeights(int percentRgb, void *ctx)
     depthWeight = 1.f - rgbWeight;
 }
 
-int main()
+int main( int argc, char** argv )
 {
 
 
@@ -274,7 +277,7 @@ int main()
                     //double fx = 857.1668, fy = 856.0823, cx = 643.9126, cy = 387.56018;// 1280 x 800 calib   rms 0.12219291207537852  file:///home/lc/Dev/calib1%20oak-d%20dataset/calib%20with%20monitor
                     double fx = 1042.20948, fy = 1040.51395, cx = 643.9126, cy = 387.56018;// 1280 x 720 calib   rms 0.016328653730143784 file:///home/lc/Dev/depthai-core-example/build/tmp%20to%20use/select/result%20fast%20calib
                     //Problem cloud scale :  real  0.30/  generated 0.756   aprox factor  0.4 ???     disparityD value is scaled by 16bits? so   real disparityD= disparityD/16bits ? 
-                    double factorFix= 1; //720/400; //720/400; // 1080/720      0.4; //1000; //0.4;  // upscale   THE_400_P to THE_720_P
+                    double factorFix= 0.4; //720/400; //720/400; // 1080/720      0.4; //1000; //0.4;  // upscale   THE_400_P to THE_720_P
                     double baselineStereo = 0.075; // Stereo baseline distance: 7.5 cm
                     for (int v = 0; v < disparity.rows; v++)
                     {
@@ -329,6 +332,70 @@ int main()
                     //-----Generation pointcloud-----------end
 
 
+if(!img_rgb.empty() && !img_disparity.empty())
+{
+    
+
+                      //Create point cloud and fill it
+  std::cout << "Creating Point Cloud..." <<std::endl;
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_cloud_ptr (new pcl::PointCloud<pcl::PointXYZRGB>);
+  
+  double px, py, pz;
+  uchar pr, pg, pb;
+  
+  for (int i = 0; i < img_rgb.rows; i++)
+  {
+    uchar* rgb_ptr = img_rgb.ptr<uchar>(i);
+#ifdef CUSTOM_REPROJECT
+    uchar* disp_ptr = img_disparity.ptr<uchar>(i);
+#else
+    double* recons_ptr = recons3D.ptr<double>(i);
+#endif
+    for (int j = 0; j < img_rgb.cols; j++)
+    {
+      //Get 3D coordinates
+#ifdef CUSTOM_REPROJECT
+      uchar d = disp_ptr[j];
+      if ( d == 0 ) continue; //Discard bad pixels
+      double pw = -1.0 * static_cast<double>(d) * Q32 + Q33; 
+      px = static_cast<double>(j) + Q03;
+      py = static_cast<double>(i) + Q13;
+      pz = Q23*factorFix; //focus *factorFix
+      
+      px = px/pw;
+      py = py/pw;
+      pz = pz/pw;
+
+#else
+      px = recons_ptr[3*j];
+      py = recons_ptr[3*j+1];
+      pz = recons_ptr[3*j+2];
+#endif
+      
+      //Get RGB info
+      pb = rgb_ptr[3*j];
+      pg = rgb_ptr[3*j+1];
+      pr = rgb_ptr[3*j+2];
+      
+      //Insert info into point cloud structure
+      pcl::PointXYZRGB point;
+      point.x = px;
+      point.y = py;
+      point.z = pz;
+      uint32_t rgb = (static_cast<uint32_t>(pr) << 16 |
+              static_cast<uint32_t>(pg) << 8 | static_cast<uint32_t>(pb));
+      point.rgb = *reinterpret_cast<float*>(&rgb);
+      point_cloud_ptr->points.push_back (point);
+    }
+  }
+  point_cloud_ptr->width = (int) point_cloud_ptr->points.size();
+  point_cloud_ptr->height = 1;
+  
+  if(!point_cloud_ptr->empty())
+   pcl::io::savePCDFileASCII(numb_img+"_color.pcd", *point_cloud_ptr); //for Debug
+   //pcl::io::savePCDFileASCII("/home/lc/Dev/depthai-core-example/build/tmp/cloudOut.pcd", *point_cloud_ptr); //for Debug
+
+}
 
                     auto maxDisparity = stereo->initialConfig.getMaxDisparity();
                     std::cout << "maxDisparity: " << maxDisparity<<std::endl; //95
