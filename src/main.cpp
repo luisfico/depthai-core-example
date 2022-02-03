@@ -242,7 +242,7 @@ int main()
                     //double fx = 857.1668, fy = 856.0823, cx = 643.9126, cy = 387.56018;// 1280 x 800 calib   rms 0.12219291207537852  file:///home/lc/Dev/calib1%20oak-d%20dataset/calib%20with%20monitor
                     double fx = 1042.20948, fy = 1040.51395, cx = 643.9126, cy = 387.56018;// 1280 x 720 calib   rms 0.016328653730143784 file:///home/lc/Dev/depthai-core-example/build/tmp%20to%20use/select/result%20fast%20calib
                     //Problem cloud scale :  real  0.30/  generated 0.756   aprox factor  0.4 ???     disparityD value is scaled by 16bits? so   real disparityD= disparityD/16bits ? 
-                    double factorFix= 720/400; //720/400; // 1080/720      0.4; //1000; //0.4;  // upscale   THE_400_P to THE_720_P
+                    double factorFix= 1; //720/400; //720/400; // 1080/720      0.4; //1000; //0.4;  // upscale   THE_400_P to THE_720_P
                     double baselineStereo = 0.075; // Stereo baseline distance: 7.5 cm
                     for (int v = 0; v < disparity.rows; v++)
                     {
@@ -260,10 +260,10 @@ int main()
                             //double disparityD = disparity.ptr<unsigned short>(v)[u]; //ko
 
                             //unsigned int disparityD = disparity.ptr<uint8_t>(v)[u]; //ok
-                            //double disparityD = disparity.ptr<uint8_t>(v)[u]; //ok!!   disparityD value is scaled by 16bits? so   real disparityD= disparityD/16bits ? 
+                            double disparityD = disparity.ptr<uint8_t>(v)[u]; //ok!!   disparityD value is scaled by 16bits? so   real disparityD= disparityD/16bits ? 
                             //double disparityD = disparity.ptr<uint16_t>(v)[u];
                             //double disparityD = disparity.ptr<uint32_t>(v)[u];
-                            uchar dispValue = disparity.ptr<uchar>(v)[u];  double disparityD = static_cast<double>(dispValue);
+                            //uchar dispValue = disparity.ptr<uchar>(v)[u];  double disparityD = static_cast<double>(dispValue);
                             if(disparityD <= 0.0 )
                                 continue;
 
