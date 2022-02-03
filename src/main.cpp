@@ -105,6 +105,34 @@ static void updateBlendWeights(int percentRgb, void *ctx)
 int main()
 {
 
+
+
+  //Load Matrix Q
+  cv::FileStorage fs(argv[1], cv::FileStorage::READ);
+  cv::Mat Q;
+  
+  fs["Q"] >> Q;
+  
+  //If size of Q is not 4x4 exit
+  if (Q.cols != 4 || Q.rows != 4)
+  {
+    std::cerr << "ERROR: Could not read matrix Q (doesn't exist or size is not 4x4)" << std::endl;
+    return 1;
+  }
+
+//Get the interesting parameters from Q
+  double Q03, Q13, Q23, Q32, Q33;
+  Q03 = Q.at<double>(0,3);
+  Q13 = Q.at<double>(1,3);
+  Q23 = Q.at<double>(2,3);
+  Q32 = Q.at<double>(3,2);
+  Q33 = Q.at<double>(3,3);
+  
+  std::cout << "Q(0,3) = "<< Q03 <<"; Q(1,3) = "<< Q13 <<"; Q(2,3) = "<< Q23 <<"; Q(3,2) = "<< Q32 <<"; Q(3,3) = "<< Q33 <<";" << std::endl;
+  
+  std::cout << "Read matrix in file " << argv[1] << std::endl;
+
+
   //PCL_cloud_viewer
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
   //pcl::io::loadPCDFile("/home/lc/fprojects/cpp/pcl/detectionLibViewer/cloudOrig.pcd", *cloud);    //for Debug
@@ -236,6 +264,10 @@ int main()
                     cv::imwrite(numb_imgColor, frame["rgb"]);
                     cv::imwrite("tmp/imgDisparity.pgm", frame["depth"]);
                     
+
+                    cv::Mat img_rgb = frame["rgb"].clone();
+                    cv::Mat img_disparity = frame["depth"].clone();
+
                     // Assuming  1280 x 720  default
                     //TODO: check this calib default!!!
                     //double fx = 788.936829, fy = 788.936829, cx = 660.262817, cy = 397.718628; //default  1280 x 800
