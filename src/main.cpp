@@ -249,9 +249,9 @@ int main()
                         for (int u = 0; u < disparity.cols; u++)
                         {
 
-                            if (disparity.at<uint8_t>(v, u) <= 0.0 || disparity.at<uint8_t>(v, u) >= 96.0)    //ok
+                            //if (disparity.at<uint8_t>(v, u) <= 0.0 || disparity.at<uint8_t>(v, u) >= 96.0)    //ok
                             //if (disparity.at<uint8_t>(v, u) <= 0.0 || disparity.at<uint8_t>(v, u) >= 200.0)
-                                continue;
+                            //    continue;
 
                             // compute the depth from disparity
                             //double disparityD=disparity.at<float>(v, u);//ko
@@ -260,10 +260,13 @@ int main()
                             //double disparityD = disparity.ptr<unsigned short>(v)[u]; //ko
 
                             //unsigned int disparityD = disparity.ptr<uint8_t>(v)[u]; //ok
-                            double disparityD = disparity.ptr<uint8_t>(v)[u]; //ok   disparityD value is scaled by 16bits? so   real disparityD= disparityD/16bits ? 
+                            //double disparityD = disparity.ptr<uint8_t>(v)[u]; //ok!!   disparityD value is scaled by 16bits? so   real disparityD= disparityD/16bits ? 
                             //double disparityD = disparity.ptr<uint16_t>(v)[u];
                             //double disparityD = disparity.ptr<uint32_t>(v)[u];
-                            
+                            uchar dispValue = disparity.ptr<uchar>(v)[u];  double disparityD = static_cast<double>(dispValue);
+                            if(disparityD <= 0.0 )
+                                continue;
+
                             double xNorm = (u - cx) / fx;                        // x normalizado
                             double yNorm = (v - cy) / fy;                        // y normalizado
                             double depth = fx * baselineStereo / (disparityD*factorFix); //ok depth=z real = scala w
