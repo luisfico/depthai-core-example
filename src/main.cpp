@@ -198,6 +198,12 @@ int main( int argc, char** argv )
     // LR-check is required for depth alignment
     stereo->setLeftRightCheck(true);
     stereo->setDepthAlign(dai::CameraBoardSocket::RGB);
+    // Options: MEDIAN_OFF, KERNEL_3x3, KERNEL_5x5, KERNEL_7x7 (default)
+    stereo->initialConfig.setMedianFilter(dai::MedianFilter::KERNEL_7x7);
+    stereo->setLeftRightCheck(true);
+    stereo->setExtendedDisparity(true);
+    stereo->setSubpixel(false);
+
 
     // Linking
     camRgb->isp.link(rgbOut->input);
@@ -392,8 +398,8 @@ if(!img_rgb.empty() && !img_disparity.empty())
       //uint32_t d = disp_ptr[j];
       if ( d == 0 ) continue; //Discard bad pixels
       double dDebug=static_cast<double>(d);
-      std::cout<<"d:"<<d<<std::endl;
-      std::cout<<"dDebug:"<<dDebug<<std::endl;
+      //std::cout<<"d:"<<d<<std::endl;
+      //std::cout<<"dDebug:"<<dDebug<<std::endl;
       
       double pw = -1.0 * static_cast<double>(d) * Q32 + Q33; // --disparity/baseline
       px = static_cast<double>(j) + Q03;
