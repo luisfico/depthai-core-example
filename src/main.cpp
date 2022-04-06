@@ -401,7 +401,7 @@ if(!img_rgb.empty() && !img_disparity.empty())
       //std::cout<<"d:"<<d<<std::endl;
       //std::cout<<"dDebug:"<<dDebug<<std::endl;
       
-      double pw = -1.0 * static_cast<double>(d) * Q32 + Q33; // --disparity/baseline
+      double pw = -1.0 * static_cast<double>(d) * Q32 + Q33; // --disparity/baseline      /2   
       px = static_cast<double>(j) + Q03;
       py = static_cast<double>(i) + Q13;
       pz = Q23; //focus *factorFix
@@ -442,7 +442,7 @@ if(!img_rgb.empty() && !img_disparity.empty())
 }
 
                     auto maxDisparity = stereo->initialConfig.getMaxDisparity();
-                    std::cout << "maxDisparity: " << maxDisparity<<std::endl; //95
+                    std::cout << "maxDisparity: " << maxDisparity<<std::endl; //95 o 190
                     // Optional, extend range 0..95 -> 0..255, for a better visualisation
 
                     if (1)
