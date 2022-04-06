@@ -105,6 +105,18 @@ static void updateBlendWeights(int percentRgb, void *ctx)
     depthWeight = 1.f - rgbWeight;
 }
 
+void printMatrix(std::vector<std::vector<float>> matrix) {
+    using namespace std;
+    std::string out = "[";
+    for(auto row : matrix) {
+        out += "[";
+        for(auto val : row) out += to_string(val) + ", ";
+        out = out.substr(0, out.size() - 2) + "]\n";
+    }
+    out = out.substr(0, out.size() - 1) + "]\n\n";
+    cout << out;
+}
+
 int main( int argc, char** argv )
 {
 
@@ -219,10 +231,25 @@ int main( int argc, char** argv )
     //viewer = Vis(cloud,cloudOut); //2 clouds
     //viewer = simpleVis(cloud); //1 cloud
 
+    //Get calib
+    dai::CalibrationHandler calibData = device.readCalibration();
+    // calibData.eepromToJsonFile(filename);
+    std::vector<std::vector<float>> intrinsics;
+    int width, height;
+
+    cout << "Intrinsics from defaultIntrinsics function:" << endl;
+    std::tie(intrinsics, width, height) = calibData.getDefaultIntrinsics(dai::CameraBoardSocket::RIGHT);
+    printMatrix(intrinsics);
+
+    cout << "Intrinsics from getCameraIntrinsics function 1280 x 720:" << endl;
+    intrinsics = calibData.getCameraIntrinsics(dai::CameraBoardSocket::RIGHT, 1280, 720);
+    printMatrix(intrinsics);
 
     int cont=0;
     while (true)
     {
+        
+
         //PCL_cloud_viewer 
         //viewer->spinOnce(100);
         //std::this_thread::sleep_for(100ms);
@@ -273,11 +300,11 @@ int main( int argc, char** argv )
 
                     // Assuming  1280 x 720  default
                     //TODO: check this calib default!!!
-                    //double fx = 788.936829, fy = 788.936829, cx = 660.262817, cy = 397.718628; //default  1280 x 800
+                    double fx = 788.936829, fy = 788.936829, cx = 660.262817, cy = 397.718628; //default  1280 x 800
                     //double fx = 857.1668, fy = 856.0823, cx = 643.9126, cy = 387.56018;// 1280 x 800 calib   rms 0.12219291207537852  file:///home/lc/Dev/calib1%20oak-d%20dataset/calib%20with%20monitor
-                    double fx = 1042.20948, fy = 1040.51395, cx = 643.9126, cy = 387.56018;// 1280 x 720 calib   rms 0.016328653730143784 file:///home/lc/Dev/depthai-core-example/build/tmp%20to%20use/select/result%20fast%20calib
+                    //double fx = 1042.20948, fy = 1040.51395, cx = 643.9126, cy = 387.56018;// 1280 x 720 calib   rms 0.016328653730143784 file:///home/lc/Dev/depthai-core-example/build/tmp%20to%20use/select/result%20fast%20calib
                     //Problem cloud scale :  real  0.30/  generated 0.756   aprox factor  0.4 ???     disparityD value is scaled by 16bits? so   real disparityD= disparityD/16bits ? 
-                    double factorFix= 0.4; //720/400; //720/400; // 1080/720      0.4; //1000; //0.4;  // upscale   THE_400_P to THE_720_P
+                    double factorFix= 1; //720/400; //720/400; // 1080/720      0.4; //1000; //0.4;  // upscale   THE_400_P to THE_720_P
                     double baselineStereo = 0.075; // Stereo baseline distance: 7.5 cm
                     for (int v = 0; v < disparity.rows; v++)
                     {
@@ -304,13 +331,13 @@ int main( int argc, char** argv )
 
                             double xNorm = (u - cx) / fx;                        // x normalizado
                             double yNorm = (v - cy) / fy;                        // y normalizado
-                            double depth = fx * baselineStereo / (disparityD*factorFix); //ok depth=z real = scala w
+                            double depth = fx * baselineStereo / (disparityD)*factorFix; //ok depth=z real = scala w
                             //double depth = fx * baselineStereo / (disparity.at<float>(v, u));//ko
                             //double depth = fx * baselineStereo / disparity.ptr<float>(v)[u];//ko
                             //unsigned int d2 = img_depth.ptr<uint8_t>(400)[1000];
 
-                            if (depth > 15.0)
-                                continue;              // solo rescata los puntos con profundiad inferior a 15m
+                            //if (depth > 15.0)
+                            //    continue;              // solo rescata los puntos con profundiad inferior a 15m
                             double xP = xNorm * depth; // x normalizado se escala y se recupera x real
                             double yP = yNorm * depth;
                             double zP = depth;
