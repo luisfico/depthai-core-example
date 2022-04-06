@@ -194,7 +194,7 @@ int main( int argc, char** argv )
     right->setBoardSocket(dai::CameraBoardSocket::RIGHT);
     right->setFps(fps);
 
-    stereo->setDefaultProfilePreset(dai::node::StereoDepth::PresetMode::HIGH_DENSITY); // HIGH_ACCURACY
+    stereo->setDefaultProfilePreset(dai::node::StereoDepth::PresetMode::HIGH_ACCURACY); // HIGH_ACCURACY,HIGH_DENSITY
     // LR-check is required for depth alignment
     stereo->setLeftRightCheck(true);
     stereo->setDepthAlign(dai::CameraBoardSocket::RGB);
@@ -336,8 +336,8 @@ int main( int argc, char** argv )
                             //double depth = fx * baselineStereo / disparity.ptr<float>(v)[u];//ko
                             //unsigned int d2 = img_depth.ptr<uint8_t>(400)[1000];
 
-                            //if (depth > 15.0)
-                            //    continue;              // solo rescata los puntos con profundiad inferior a 15m
+                            if (depth > 15.0)
+                                continue;              // solo rescata los puntos con profundiad inferior a 15m
                             double xP = xNorm * depth; // x normalizado se escala y se recupera x real
                             double yP = yNorm * depth;
                             double zP = depth;
@@ -375,6 +375,10 @@ if(!img_rgb.empty() && !img_disparity.empty())
     uchar* rgb_ptr = img_rgb.ptr<uchar>(i);
 #ifdef CUSTOM_REPROJECT
     uchar* disp_ptr = img_disparity.ptr<uchar>(i);
+    //uint8_t* disp_ptr = img_disparity.ptr<uint8_t>(i);//   /2
+    //uint16_t* disp_ptr = img_disparity.ptr<uint16_t>(i);//   /4
+    //uint32_t* disp_ptr = img_disparity.ptr<uint32_t>(i);  //  /2
+    
 #else
     double* recons_ptr = recons3D.ptr<double>(i);
 #endif
@@ -383,15 +387,22 @@ if(!img_rgb.empty() && !img_disparity.empty())
       //Get 3D coordinates
 #ifdef CUSTOM_REPROJECT
       uchar d = disp_ptr[j];
+      //uint8_t d = disp_ptr[j];//   /8
+      //uint16_t d = disp_ptr[j];
+      //uint32_t d = disp_ptr[j];
       if ( d == 0 ) continue; //Discard bad pixels
-      double pw = -1.0 * static_cast<double>(d) * Q32 + Q33; 
+      double dDebug=static_cast<double>(d);
+      std::cout<<"d:"<<d<<std::endl;
+      std::cout<<"dDebug:"<<dDebug<<std::endl;
+      
+      double pw = -1.0 * static_cast<double>(d) * Q32 + Q33; // --disparity/baseline
       px = static_cast<double>(j) + Q03;
       py = static_cast<double>(i) + Q13;
-      pz = Q23*factorFix; //focus *factorFix
+      pz = Q23; //focus *factorFix
       
       px = px/pw;
       py = py/pw;
-      pz = pz/pw;
+      pz = pz/pw;// +focus*baseline/disparity
 
 #else
       px = recons_ptr[3*j];
