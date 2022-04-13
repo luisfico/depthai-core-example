@@ -197,12 +197,14 @@ int main( int argc, char** argv )
     stereo->setDefaultProfilePreset(dai::node::StereoDepth::PresetMode::HIGH_ACCURACY); // HIGH_ACCURACY,HIGH_DENSITY
     // LR-check is required for depth alignment
     stereo->setLeftRightCheck(true);
-    stereo->setDepthAlign(dai::CameraBoardSocket::RGB);
+
     // Options: MEDIAN_OFF, KERNEL_3x3, KERNEL_5x5, KERNEL_7x7 (default)
     stereo->initialConfig.setMedianFilter(dai::MedianFilter::MEDIAN_OFF);
-    stereo->setLeftRightCheck(true);
     stereo->setExtendedDisparity(false);
-    stereo->setSubpixel(false);
+    stereo->setSubpixel(true);
+
+    stereo->setDepthAlign(dai::CameraBoardSocket::RGB);
+
 
 
     // Linking
