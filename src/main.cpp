@@ -199,9 +199,9 @@ int main( int argc, char** argv )
     stereo->setLeftRightCheck(true);
     stereo->setDepthAlign(dai::CameraBoardSocket::RGB);
     // Options: MEDIAN_OFF, KERNEL_3x3, KERNEL_5x5, KERNEL_7x7 (default)
-    stereo->initialConfig.setMedianFilter(dai::MedianFilter::KERNEL_7x7);
+    stereo->initialConfig.setMedianFilter(dai::MedianFilter::MEDIAN_OFF);
     stereo->setLeftRightCheck(true);
-    stereo->setExtendedDisparity(true);
+    stereo->setExtendedDisparity(false);
     stereo->setSubpixel(false);
 
 
