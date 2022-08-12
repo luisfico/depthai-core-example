@@ -36,9 +36,10 @@ https://docs.opencv.org/master/d0/d3d/tutorial_general_install.html
 
 Configure and build
 ```
-mkdir -p build && cd build
-cmake ..
-cmake --build . --parallel
+cmake -S . -B build -D 'CMAKE_BUILD_TYPE=Release'
+or
+cmake -S . -B build -D 'CMAKE_BUILD_TYPE=Debug' 
+cmake --build build --parallel -j$(nproc)
 ```
 
 ## Running
