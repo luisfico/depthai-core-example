@@ -46,5 +46,13 @@ cmake --build build --parallel -j$(nproc)
 
 To run the example application 'myapp', navigate to build directory and run 'myapp' executable
 ```
-./myapp
+
+./build/myapp Q4k_right.xml 
+
+./build/rgb_depth_aligned_ref 
+
 ```
+
+The results are generated in :
+
+/home/lc/env/oakd/codeCpp/depthai-core-example/tmp

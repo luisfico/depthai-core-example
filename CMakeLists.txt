@@ -45,3 +45,31 @@ endif()
 set_property(TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD 11)
 set_property(TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
 set_property(TARGET ${TARGET_NAME} PROPERTY CXX_EXTENSIONS OFF)
+
+
+
+
+
+# Add source files
+add_executable(rgb_depth_aligned_ref
+    src/rgb_depth_aligned_ref.cpp
+)
+
+# Link with libraries
+target_link_libraries(rgb_depth_aligned_ref
+    PUBLIC
+        depthai::opencv
+        ${OpenCV_LIBS} # optional, used for example
+        ${PCL_LIBRARIES} # PCL library
+)
+
+# Set some errors
+if(NOT MSVC)
+    target_compile_options(rgb_depth_aligned_ref PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Werror=return-type>)
+endif()
+
+# Set compiler features (c++11), and disables extensions (g++)
+set_property(TARGET rgb_depth_aligned_ref PROPERTY CXX_STANDARD 11)
+set_property(TARGET rgb_depth_aligned_ref PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET rgb_depth_aligned_ref PROPERTY CXX_EXTENSIONS OFF)
+

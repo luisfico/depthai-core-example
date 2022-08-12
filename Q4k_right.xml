@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<Q type_id="opencv-matrix">
+  <rows>4</rows>
+  <cols>4</cols>
+  <dt>d</dt>
+  <data>
+    1. 0. 0. -1980.788452
+    0. 1. 0. -1073.155884
+    0. 0. 0. 2366.810547
+    0. 0. -13.33333 0.
+  </data>
+</Q>
+</opencv_storage>
