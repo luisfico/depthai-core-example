@@ -1,5 +1,24 @@
 /*BUILD:    cmake --build build --parallel -j$(nproc)
 RUN:        ./build/myapp Q.xml 
+
+TODO: it needs  getCameraExtrinsics() because pointcloud is with respect to right camera frame
+    search extrensics  color - right
+
+    move cloud from right to left   or
+    move cloud from right to center
+
+Extrinsics from right->rgb test:
+[[0.999862, 0.016547, -0.001411, 3.722626]
+[-0.016537, 0.999836, 0.007325, 0.040002]
+[0.001532, -0.007300, 0.999972, -0.210855]
+[0.000000, 0.000000, 0.000000, 1.000000]]
+
+Extrinsics from rgb->right test:
+[[0.999862, -0.016537, 0.001532, -3.721128]
+[0.016547, 0.999836, -0.007300, -0.103135]
+[-0.001411, 0.007325, 0.999972, 0.215810]
+[0.000000, 0.000000, 0.000000, 1.000000]]
+
 */
 
 
@@ -298,7 +317,7 @@ int main(int argc, char **argv)
                     std::string numb_img = "/home/lc/env/oakd/codeCpp/depthai-core-example/tmp/cloudDepth_" + to_string(cont);
                     // std::string numb_imgColor= "/home/lc/env/oakd/codeCpp/depthai-core-example/tmp/img_"+ to_string(cont)+".png" ;
                     std::string numb_imgColor = "/home/lc/env/oakd/codeCpp/depthai-core-example/tmp/img_current.png";
-                    std::string numb_imgname = numb_img + ".csv";
+                    //std::string numb_imgname = numb_img + ".csv";
                     // file.open(numb_imgname, std::fstream::in | std::fstream::out | std::fstream::app);
                     // file << "//X;Y;Z\n";
 
@@ -314,8 +333,8 @@ int main(int argc, char **argv)
                     // Assuming  1280 x 720  default
                     // TODO: check this calib default!!!
                     
-
-                    double fx = 788.936829*3, fy = 788.936829*3, cx = 660.262817*3, cy = 397.718628*3; // 4K = 3840x2160 is (1280×720   x3times)  
+                    double fx = 2366.810547, fy = fx, cx = 1980.788452, cy = 1073.155884; // 4K = 3840x2160 is (1280×720   x3times)  
+                    //double fx = 788.936829*3, fy = 788.936829*3, cx = 660.262817*3, cy = 397.718628*3; // 4K = 3840x2160 is (1280×720   x3times)  
                     //double fx = 788.936829, fy = 788.936829, cx = 660.262817, cy = 397.718628; // default  1280 x 800
                     
                     // double fx = 857.1668, fy = 856.0823, cx = 643.9126, cy = 387.56018;// 1280 x 800 calib   rms 0.12219291207537852  file:///home/lc/Dev/calib1%20oak-d%20dataset/calib%20with%20monitor
@@ -416,10 +435,10 @@ int main(int argc, char **argv)
                                 // std::cout<<"d:"<<d<<std::endl;
                                 // std::cout<<"dDebug:"<<dDebug<<std::endl;
 
-                                double pw = (-1.0 * static_cast<double>(d) * Q32 + Q33); // --disparity/baseline      /2
+                                double pw = (-1.0 * static_cast<double>(d) * Q32 + Q33) /factorFix; // --disparity/baseline      /2
                                 px = static_cast<double>(j) + Q03;
                                 py = static_cast<double>(i) + Q13;
-                                pz = Q23 *factorFix; // focus 
+                                pz = Q23 ; // focus 
 
                                 px = px / pw;
                                 py = py / pw;
