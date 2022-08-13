@@ -160,10 +160,21 @@ Extrinsics from rgb->right test:
                                                     0.000064, 0.999910, 0.013421, -0.00029268,
                                                     0.004777, -0.013421, 0.999898, -0.00183094,
                                  				0.000000000000, 0.000000000000, 0.000000000000, 1.000000000000);
-*/
         cv::Mat TF_RightCamToColorCam = (cv::Mat_<double>(4, 4) << 0.999862, -0.016537, 0.001532, -0.03721128,
                                                 0.016547, 0.999836, -0.007300, -0.00103135,
                                                 -0.001411, 0.007325, 0.999972, 0.00215810,
+                                 				0.000000000000, 0.000000000000, 0.000000000000, 1.000000000000);
+
+Extrinsics from left->right test:
+[[0.999857, -0.016571, -0.003245, -7.479905]
+[0.016591, 0.999844, 0.006121, -0.129734]
+[0.003143, -0.006174, 0.999976, 0.016303]
+[0.000000, 0.000000, 0.000000, 1.000000]]
+*/
+        cv::Mat TF_LeftToRightCam = (cv::Mat_<double>(4, 4) << 0.999857, -0.016571, -0.003245, -7.479905,
+                                                0.016591, 0.999844, 0.006121, -0.129734,
+                                                0.003143, -0.006174, 0.999976, 0.016303,
+                                                0.000000, 0.000000, 0.000000, 1.000000,
                                  				0.000000000000, 0.000000000000, 0.000000000000, 1.000000000000);
 
     // Load Matrix Q
@@ -492,7 +503,10 @@ Extrinsics from rgb->right test:
 
                                 // Transf Pt3d
                                 //cv::Mat pt3dCvTransf = TF_LeftCamToColorCam.inv() * pt3dCamStereo;
-                                cv::Mat pt3dCvTransf = TF_RightCamToColorCam*pt3dCamStereo;
+                                //cv::Mat pt3dCvTransf = TF_RightCamToColorCam*pt3dCamStereo;
+                                cv::Mat pt3dCvTransf = TF_LeftToRightCam*pt3dCamStereo;
+                                
+                                
                                 // cloud_out_transf.push_back(pt3dCvTransf);
 
                                 // Project tranformed Pt3d  to cameraVP    find x,y    assign the depth value of double(d)
