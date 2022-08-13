@@ -291,9 +291,11 @@ Extrinsics from rgb->right test:
 
     //cout << "Intrinsics from getCameraIntrinsics function 1280 x 720:" << endl;
     //intrinsics = calibData.getCameraIntrinsics(dai::CameraBoardSocket::RIGHT, 1280, 720);
+    //intrinsics = calibData.getCameraIntrinsics(dai::CameraBoardSocket::LEFT, 3840,2160);
     
-    cout << "Intrinsics from getCameraIntrinsics function 4K 3840x2160 (LEFT):" << endl;
-    intrinsics = calibData.getCameraIntrinsics(dai::CameraBoardSocket::LEFT, 3840,2160);
+    cout << "Intrinsics from getCameraIntrinsics function 4K 3840x2160 :" << endl;
+    intrinsics = calibData.getCameraIntrinsics(dai::CameraBoardSocket::RGB, 3840,2160);
+    
     printMatrix(intrinsics);
 
     int cont = 0;
@@ -351,7 +353,14 @@ Extrinsics from rgb->right test:
                     // Assuming  1280 x 720  default
                     // TODO: check this calib default!!!
                     
-                    double fx = 2366.810547, fy = fx, cx = 1980.788452, cy = 1073.155884; // 4K = 3840x2160 is (1280×720   x3times)  
+                    /*
+                     Intrinsics from getCameraIntrinsics color  function 4K 3840x2160 :
+                    [[3090.419189, 0.000000, 1953.194824]
+                    [0.000000, 3090.419189, 1068.689209]
+                    [0.000000, 0.000000, 1.000000]]
+                    */
+                    //double fx = 3090.419189, fy = fx, cx = 1953.194824, cy = 1068.689209; // 4K color = 3840x2160 is (1280×720   x3times)  
+                    double fx = 2366.810547, fy = fx, cx = 1980.788452, cy = 1073.155884; // 4K right = 3840x2160 is (1280×720   x3times)  
                     //double fx = 788.936829*3, fy = 788.936829*3, cx = 660.262817*3, cy = 397.718628*3; // 4K = 3840x2160 is (1280×720   x3times)  
                     //double fx = 788.936829, fy = 788.936829, cx = 660.262817, cy = 397.718628; // default  1280 x 800
                     
@@ -476,6 +485,7 @@ Extrinsics from rgb->right test:
                                 py = recons_ptr[3 * j + 1];
                                 pz = recons_ptr[3 * j + 2];
 #endif
+
 
                                 //Fix cloud from left frame to center color frame
                                 cv::Mat pt3dCamStereo = (cv::Mat_<double>(4, 1) << px, py, pz, 1);
@@ -640,4 +650,10 @@ Extrinsics from left->rgb test:
                     [[2366.810547, 0.000000, 1980.788452]
                     [0.000000, 2366.810547, 1073.155884]
                     [0.000000, 0.000000, 1.000000]]
+
+                    Intrinsics from getCameraIntrinsics color  function 4K 3840x2160 :
+                    [[3090.419189, 0.000000, 1953.194824]
+                    [0.000000, 3090.419189, 1068.689209]
+                    [0.000000, 0.000000, 1.000000]]
+
                     */
