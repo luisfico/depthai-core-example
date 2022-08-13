@@ -4,20 +4,9 @@ RUN:        ./build/myapp Q.xml
 TODO: it needs  getCameraExtrinsics() because pointcloud is with respect to right camera frame
     search extrensics  color - right
 
-    move cloud from right to left   or
-    move cloud from right to center
+    move cloud from left to center
 
-Extrinsics from right->rgb test:
-[[0.999862, 0.016547, -0.001411, 3.722626]
-[-0.016537, 0.999836, 0.007325, 0.040002]
-[0.001532, -0.007300, 0.999972, -0.210855]
-[0.000000, 0.000000, 0.000000, 1.000000]]
-
-Extrinsics from rgb->right test:
-[[0.999862, -0.016537, 0.001532, -3.721128]
-[0.016547, 0.999836, -0.007300, -0.103135]
-[-0.001411, 0.007325, 0.999972, 0.215810]
-[0.000000, 0.000000, 0.000000, 1.000000]]
+OR TO CALIBRATE EXTRENSICS ???
 
 */
 
@@ -151,6 +140,31 @@ static std::atomic<bool> lr_check{true};
 
 int main(int argc, char **argv)
 {
+
+/*
+Extrinsics from left->rgb test:
+[[0.999989, 0.000000, -0.004777, -3.757788]
+[0.000064, 0.999910, 0.013421, -0.029268]
+[0.004777, -0.013421, 0.999898, -0.183094]
+[0.000000, 0.000000, 0.000000, 1.000000]]
+
+Extrinsics from rgb->right test:
+[[0.999862, -0.016537, 0.001532, -3.721128]
+[0.016547, 0.999836, -0.007300, -0.103135]
+[-0.001411, 0.007325, 0.999972, 0.215810]
+[0.000000, 0.000000, 0.000000, 1.000000]]
+*/
+    // Extrinsics from left->rgb test: cm to meters
+    /*
+        cv::Mat TF_LeftCamToColorCam = (cv::Mat_<double>(4, 4) << .999989, 0.000000, -0.004777, -0.03757788,
+                                                    0.000064, 0.999910, 0.013421, -0.00029268,
+                                                    0.004777, -0.013421, 0.999898, -0.00183094,
+                                 				0.000000000000, 0.000000000000, 0.000000000000, 1.000000000000);
+*/
+        cv::Mat TF_RightCamToColorCam = (cv::Mat_<double>(4, 4) << 0.999862, -0.016537, 0.001532, -0.03721128,
+                                                0.016547, 0.999836, -0.007300, -0.00103135,
+                                                -0.001411, 0.007325, 0.999972, 0.00215810,
+                                 				0.000000000000, 0.000000000000, 0.000000000000, 1.000000000000);
 
     // Load Matrix Q
     cv::FileStorage fs(argv[1], cv::FileStorage::READ);
@@ -312,7 +326,11 @@ int main(int argc, char **argv)
 
                     frame[name] = latestPacket[name]->getFrame();
 
-                    //-----Generation pointcloud-----------ini
+
+
+
+
+                    //-----Generation pointcloud with respect to left stereo frame-----------ini
                     cont++;
                     std::string numb_img = "/home/lc/env/oakd/codeCpp/depthai-core-example/tmp/cloudDepth_" + to_string(cont);
                     // std::string numb_imgColor= "/home/lc/env/oakd/codeCpp/depthai-core-example/tmp/img_"+ to_string(cont)+".png" ;
@@ -402,7 +420,16 @@ int main(int argc, char **argv)
                     if (!img_rgb.empty() && !img_disparity.empty())
                     {
 
-                        // Create point cloud and fill it
+
+                        /*
+                        Extrinsics from left->rgb test:
+                        [[0.999989, 0.000000, -0.004777, -3.757788]
+                        [0.000064, 0.999910, 0.013421, -0.029268]
+                        [0.004777, -0.013421, 0.999898, -0.183094]
+                        [0.000000, 0.000000, 0.000000, 1.000000]]
+                        */
+                    
+                        // Create point cloud and fill it          frema left
                         std::cout << "Creating Point Cloud..." << std::endl;
                         pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
 
@@ -449,6 +476,23 @@ int main(int argc, char **argv)
                                 py = recons_ptr[3 * j + 1];
                                 pz = recons_ptr[3 * j + 2];
 #endif
+
+                                //Fix cloud from left frame to center color frame
+                                cv::Mat pt3dCamStereo = (cv::Mat_<double>(4, 1) << px, py, pz, 1);
+
+                                // Transf Pt3d
+                                //cv::Mat pt3dCvTransf = TF_LeftCamToColorCam.inv() * pt3dCamStereo;
+                                cv::Mat pt3dCvTransf = TF_RightCamToColorCam*pt3dCamStereo;
+                                // cloud_out_transf.push_back(pt3dCvTransf);
+
+                                // Project tranformed Pt3d  to cameraVP    find x,y    assign the depth value of double(d)
+                                px = pt3dCvTransf.at<double>(0);
+                                py = pt3dCvTransf.at<double>(1);
+                                pz = pt3dCvTransf.at<double>(2);
+
+
+
+
 
                                 // Get RGB info
                                 pb = rgb_ptr[3 * j];
