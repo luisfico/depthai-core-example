@@ -56,3 +56,20 @@ To run the example application 'myapp', navigate to build directory and run 'mya
 The results are generated in :
 
 /home/lc/env/oakd/codeCpp/depthai-core-example/tmp
+
+
+
+
+## Px Summary
+
+C++ project
+git remote add origin git@github.com:luisfico/depthai-core.git	     
+(oak c++ running as example of library) OK get cloud from aligned 4Kimages with depth 400p. Min distance of deteccion=65cm   (Depth aligment with color camera performed by ISP oakd)
+
+C++ project
+git remote add origin git@github.com:luisfico/depthai-core-example.git  
+(oak c++ isolated project ) ko get correct cloud  
+
+Python project
+git remote add origin git@github.com:luisfico/depthai-experiments.git   
+(oak python get color ) OK get cloud from aligned stereo images 400p. Min distance of deteccion=35cm (no depth aligment with color camera. TODO)
